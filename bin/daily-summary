@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+"""
+kids-ai 日次サマリー（L1）
+- 当日の usage_*.jsonl と memory jsonl から子別の活動統計を集計
+- 子別の haiku 一言コメント（メモリ追加から推測）
+- モニタCHへ post_text 1回投下
+- 22:00 JST に systemd timer 起動を想定、引数 --date YYYY-MM-DD で日付指定可
+"""
+import argparse
+import datetime
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "lib"))
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+except ImportError:
+    pass
+
+import memory as kids_memory  # noqa: E402
+import monitor as kids_monitor  # noqa: E402
+
+NAME_MAP = {"child1": "こども1", "child2": "こども2"}
+
+
+def load_usage(date_iso: str) -> list[dict]:
+    path = ROOT / "logs" / f"usage_{date_iso}.jsonl"
+    if not path.exists():
+        return []
+    out = []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    return out
+
+
+def memory_added_on(user_id: str, date_iso: str) -> list[dict]:
+    entries = kids_memory._load_all(user_id)  # type: ignore[attr-defined]
+    return [e for e in entries if e.get("ts", "").startswith(date_iso)]
+
+
+def explain_questions_on(user_id: str, date_iso: str) -> list[tuple[str, str]]:
+    """解説モードの当日 user 発話を (HH:MM, content) で返す。"""
+    path = ROOT / "conversations" / f"{user_id}_explain.json"
+    if not path.exists():
+        return []
+    try:
+        d = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    items = d.get("items", []) if isinstance(d, dict) else []
+    day_start = datetime.datetime.fromisoformat(date_iso).timestamp()
+    day_end = day_start + 86400
+    out = []
+    for it in items:
+        if it.get("role") != "user":
+            continue
+        ts = it.get("ts")
+        if not isinstance(ts, (int, float)):
+            continue
+        if not (day_start <= ts < day_end):
+            continue
+        hhmm = datetime.datetime.fromtimestamp(ts).strftime("%H:%M")
+        content = (it.get("content") or "").strip()
+        if content:
+            out.append((hhmm, content))
+    return out
+
+
+def distill_explain_topics(user_id: str, questions: list[tuple[str, str]]) -> list[str]:
+    """raw 発話列から haiku で『今日の主要トピック』を抽出。
+    音声入力の言い直し・相槌・断片を除外し、3〜6件の質問テーマに集約。"""
+    if not questions:
+        return []
+    who = NAME_MAP.get(user_id, user_id)
+    raw = "\n".join(f"{hhmm} {q}" for hhmm, q in questions)
+
+    try:
+        from anthropic import Anthropic
+        client = Anthropic()
+        resp = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=400,
+            system=(
+                "あなたは子供の解説モード会話ログから、親に向けて『今日子供が知りたかった主要テーマ』を"
+                "簡潔に抽出するアシスタント。音声入力の言い直し・相槌・1〜2語の断片・AIへの返答（"
+                "「うん」「そうなんだ」「お風呂に」等）は除外し、意味ある質問や探究テーマだけを残す。"
+                "近いトピックは1行に統合してOK。各行は質問の本質を15〜35字で。最大6行。"
+                "出力は箇条書きのみ（先頭の「・」「-」「•」も不要）、解説・前置き禁止。"
+            ),
+            messages=[{
+                "role": "user",
+                "content": f"{who}の今日の解説モード発話ログ:\n{raw}\n\n主要テーマを抽出:",
+            }],
+        )
+        text = resp.content[0].text.strip() if resp.content else ""
+        topics = []
+        for line in text.splitlines():
+            s = line.strip().lstrip("・-•*0123456789. 　")
+            if s:
+                topics.append(s)
+        return topics[:6]
+    except Exception as e:
+        print(f"[daily-summary] explain distill error: {e}", file=sys.stderr)
+        return [q for _, q in questions if len(q) >= 8 and ("?" in q or "？" in q)][:6]
+
+
+def per_user_stats(usage: list[dict], user_id: str) -> dict:
+    rows = [u for u in usage if u.get("user_id") == user_id]
+    return {
+        "calls": len(rows),
+        "cost_jpy": round(sum(r.get("cost_jpy", 0) for r in rows), 2),
+        "input_tokens": sum(r.get("input_tokens", 0) for r in rows),
+        "output_tokens": sum(r.get("output_tokens", 0) for r in rows),
+    }
+
+
+def haiku_comment(user_id: str, added: list[dict]) -> str:
+    """メモリ追加内容から haiku で1文の所感を生成。
+    抽出ゼロなら固定文言、API失敗時もフォールバック。"""
+    if not added:
+        return "（今日は新しい話題なし）"
+    bullets = "\n".join(f"- [{e['category']}] {e['item']}" for e in added[:15])
+    who = NAME_MAP.get(user_id, user_id)
+
+    try:
+        from anthropic import Anthropic
+        client = Anthropic()
+        resp = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=120,
+            system="あなたは子供の今日のメモリ追加項目から、親に向けて1〜2文で『今日の様子』を伝えるアシスタントです。説教臭くせず、温かいトーンで簡潔に。",
+            messages=[{
+                "role": "user",
+                "content": f"今日の{who}のメモリ追加項目:\n{bullets}\n\n上記から、親への一言所感を1〜2文でお願いします。",
+            }],
+        )
+        return resp.content[0].text.strip() if resp.content else "（コメント生成失敗）"
+    except Exception as e:
+        print(f"[daily-summary] haiku error: {e}", file=sys.stderr)
+        return f"（{len(added)}件のメモリ追加あり、詳細は上記）"
+
+
+def build_report(date_iso: str) -> str:
+    usage = load_usage(date_iso)
+    lines: list[str] = []
+    lines.append(f"📅 **kids-ai 日次サマリー {date_iso}**")
+    lines.append("")
+
+    total_cost = round(sum(u.get("cost_jpy", 0) for u in usage), 2)
+    lines.append(f"📊 合計：{len(usage)}会話 / {total_cost}円")
+    lines.append("")
+
+    for user_id in ("child1", "child2"):
+        who = NAME_MAP[user_id]
+        stats = per_user_stats(usage, user_id)
+        added = memory_added_on(user_id, date_iso)
+        questions = explain_questions_on(user_id, date_iso)
+        lines.append(f"👧 **{who}**：{stats['calls']}会話 / {stats['cost_jpy']}円")
+        if questions:
+            topics = distill_explain_topics(user_id, questions)
+            if topics:
+                lines.append(f"❓ 解説モードの主なテーマ（発話{len(questions)}件）:")
+                for t in topics:
+                    lines.append(f"  • {t}")
+        if added:
+            lines.append(f"📝 今日のメモリ追加（{len(added)}件）:")
+            for e in added[:10]:
+                lines.append(f"  • [{e['category']}] {e['item']}")
+            if len(added) > 10:
+                lines.append(f"  ...他{len(added) - 10}件")
+        lines.append(f"💭 {haiku_comment(user_id, added)}")
+        lines.append("")
+
+    return "\n".join(lines).rstrip()
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--date", default=None, help="YYYY-MM-DD（省略時は今日）")
+    p.add_argument("--dry-run", action="store_true", help="post せず標準出力のみ")
+    args = p.parse_args()
+
+    date_iso = args.date or datetime.date.today().isoformat()
+    report = build_report(date_iso)
+
+    if args.dry_run:
+        print(report)
+        return
+
+    print(report)
+    ok = kids_monitor.post_text(report)
+    if ok:
+        print("[daily-summary] posted to monitor CH", file=sys.stderr)
+    else:
+        print("[daily-summary] post skipped (MONITOR_CHANNEL_ID unset or post failed)", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

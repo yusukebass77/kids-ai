@@ -1,0 +1,21 @@
+{
+  "_comment": "Copy this file to children.json and edit. children.json is git-ignored so your real names/details never get committed.",
+  "assistant_name": "あい",
+  "timezone": "Asia/Tokyo",
+  "children": [
+    {
+      "id": "child1",
+      "display_name": "こども1",
+      "grade": 3,
+      "furigana": true,
+      "theme": { "bg": "#ffc0cb", "accent": "#c44569" }
+    },
+    {
+      "id": "child2",
+      "display_name": "こども2",
+      "grade": 5,
+      "furigana": false,
+      "theme": { "bg": "#b2dff7", "accent": "#357abd" }
+    }
+  ]
+}

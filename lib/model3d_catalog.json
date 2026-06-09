@@ -1,0 +1,44 @@
+{
+  "topics": {
+    "duck": {
+      "label": "アヒル",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/Duck/glTF-Binary/Duck.glb"
+    },
+    "fox": {
+      "label": "キツネ（動く）",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/Fox/glTF-Binary/Fox.glb"
+    },
+    "human": {
+      "label": "人のうごき",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/CesiumMan/glTF-Binary/CesiumMan.glb"
+    },
+    "avocado": {
+      "label": "アボカド",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/Avocado/glTF-Binary/Avocado.glb"
+    },
+    "robot": {
+      "label": "うごくロボット",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/BrainStem/glTF-Binary/BrainStem.glb"
+    },
+    "helmet": {
+      "label": "ヘルメット（メカ）",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/DamagedHelmet/glTF-Binary/DamagedHelmet.glb"
+    },
+    "antique_camera": {
+      "label": "むかしのカメラ",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/AntiqueCamera/glTF-Binary/AntiqueCamera.glb"
+    },
+    "water_bottle": {
+      "label": "みずのボトル",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/WaterBottle/glTF-Binary/WaterBottle.glb"
+    },
+    "buggy": {
+      "label": "ふるい くるま",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/Buggy/glTF-Binary/Buggy.glb"
+    },
+    "lantern": {
+      "label": "ランタン",
+      "src": "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/Lantern/glTF-Binary/Lantern.glb"
+    }
+  }
+}

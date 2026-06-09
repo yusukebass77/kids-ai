@@ -1,0 +1,27 @@
+# ---- your real config (names / details) — NEVER commit ----
+config/children.json
+
+# ---- personal / runtime data ----
+# per-child memory store (keep the schema doc, ignore the data)
+memory/*/
+conversations/
+logs/
+backups/
+frozen/
+.env
+*.env
+
+# ---- secrets ----
+*.key
+*.pem
+
+# ---- python ----
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# ---- misc ----
+*.bak.*
+.DS_Store
