@@ -363,7 +363,7 @@ _WEATHER_CODE_JA = {
     85: "弱いにわか雪", 86: "強いにわか雪",
     95: "雷雨", 96: "雷雨と雹", 99: "強い雷雨と雹",
 }
-_DEFAULT_LOCATION = "鶴見"
+_DEFAULT_LOCATION = os.environ.get("KIDS_AI_DEFAULT_LOCATION", "東京")
 
 
 def get_weather_data(location: str | None = None) -> dict:
@@ -422,14 +422,14 @@ WEATHER_TOOL = {
     "description": (
         "今日と明日の天気・気温・降水確率を取得する。"
         "子供が「天気は？」「雨降る？」「暑い？」「明日は？」など天気を聞いたときに使う。"
-        "場所の指定がなければデフォルトで鶴見（神奈川県横浜市鶴見区）の天気を返す。"
+        "場所の指定がなければ設定済みのデフォルト地点（環境変数 KIDS_AI_DEFAULT_LOCATION）の天気を返す。"
     ),
     "input_schema": {
         "type": "object",
         "properties": {
             "location": {
                 "type": "string",
-                "description": "場所の名前。例: 鶴見、東京、横浜、大阪。指定なしなら鶴見。",
+                "description": "場所の名前。例: 東京、横浜、大阪。指定なしならデフォルト地点。",
             }
         },
         "required": [],

@@ -109,6 +109,7 @@ Open `http://<host>:8000/child1` on the child's device and install the PWA.
 | `KIDS_AI_SAFETY_ENFORCE` | `1` to enforce the safety gate (default: log-only) |
 | `KIDS_AI_RELAY_ENABLED` | `1` to route chat through the Discord relay |
 | `KIDS_AI_MEMORY_DIR` | override the per-child memory location |
+| `KIDS_AI_DEFAULT_LOCATION` | default place for the weather tool (default: `東京`) |
 
 ## Privacy
 
