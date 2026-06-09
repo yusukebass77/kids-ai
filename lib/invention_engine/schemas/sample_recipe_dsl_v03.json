@@ -1,0 +1,64 @@
+{
+  "recipe_schema_version": "0.3-draft",
+  "recipe_id": "dragon_alarm_screen_first",
+  "title_kids": "🐉 ドラゴンアラーム",
+  "child_id": "child1",
+  "mode": "original_invention",
+  "origin": "original_invention",
+  "dsl_version": "0.3",
+  "idea_original": "ドラゴンが近づいたら炎を出す装置",
+  "safe_reframe": "本物の火は使わず、赤いLEDとブザーでドラゴンが来たことを知らせる",
+  "difficulty": 3,
+  "requires_adult": true,
+  "components": [
+    { "part_id": "vl53l0x_distance", "instance_id": "distance1" },
+    { "part_id": "single_led",       "instance_id": "led_red" },
+    { "part_id": "active_buzzer",    "instance_id": "buzzer1" }
+  ],
+  "rules": [
+    {
+      "rule_id": "near_alarm",
+      "when": {
+        "sensor": "distance1",
+        "event": "distance_near",
+        "threshold_cm": 20
+      },
+      "then": {
+        "parallel": [
+          {
+            "actuator": "led_red",
+            "action": "blink",
+            "color": "red",
+            "duration_ms": 3000
+          },
+          {
+            "actuator": "buzzer1",
+            "action": "beep",
+            "duration_ms": 500,
+            "repeat": 3
+          }
+        ]
+      }
+    }
+  ],
+  "validation_policy": {
+    "max_rules": 5,
+    "max_actions_per_rule": 5,
+    "max_delay_ms": 10000,
+    "execution_model": "flat",
+    "nesting_allowed": false,
+    "no_unbounded_loop": true,
+    "no_arbitrary_code": true,
+    "program_must_validate_actions": true
+  },
+  "run_targets": [
+    "browser_simulator",
+    "pico_after_adult_check"
+  ],
+  "send_to_pico_gate": {
+    "requires_photo_check": true,
+    "requires_adult_approval": true,
+    "usb_state_required": "allowed",
+    "power_state_required": "checked"
+  }
+}

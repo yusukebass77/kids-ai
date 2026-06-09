@@ -1,0 +1,219 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kids-ai/schemas/recipe_dsl.schema.json",
+  "title": "kids-ai invention recipe DSL (v0.3, flat execution model)",
+  "description": "発明レシピ。LLMが生成し、プログラムがバリデートする。実行モデルはフラット（案A）：thenはparallelかsequenceのどちらか1階層のみ。ネスト不可。",
+  "type": "object",
+  "required": [
+    "recipe_schema_version", "recipe_id", "title_kids", "child_id",
+    "mode", "origin", "components", "rules", "validation_policy", "send_to_pico_gate"
+  ],
+  "properties": {
+    "recipe_schema_version": { "type": "string" },
+    "recipe_id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "title_kids": { "type": "string" },
+    "child_id": { "type": "string", "enum": ["child1", "child2"] },
+    "mode": {
+      "type": "string",
+      "enum": ["original_invention", "from_inventory"],
+      "description": "オールマイティ（発想起点）か、手持ち提案（在庫起点）か。"
+    },
+    "origin": {
+      "type": "string",
+      "enum": ["original_invention", "from_inventory", "template_recipe"],
+      "description": "保存時の正規化キー。入口が違っても recipe_dsl 形式で統一保存し、origin で区別する。"
+    },
+    "source_template_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "from_inventory モードで使ったテンプレID（recipe_templates 内の template_id）。"
+    },
+    "dsl_version": {
+      "type": "string",
+      "description": "保存時の DSL バージョン（後方互換用）。"
+    },
+    "idea_original": {
+      "type": "string",
+      "description": "子どもの元の発想（安全変換前）。記録用。"
+    },
+    "safe_reframe": {
+      "type": "string",
+      "description": "危険判定後の安全な言い換え。LLM生成、ただし判定はプログラム。"
+    },
+    "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "requires_adult": { "type": "boolean" },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/component" }
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "description": "最大5ルール（validation_policyと一致させる）。",
+      "items": { "$ref": "#/definitions/rule" }
+    },
+    "validation_policy": { "$ref": "#/definitions/validation_policy" },
+    "run_targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["browser_simulator", "pico_after_adult_check"]
+      }
+    },
+    "send_to_pico_gate": { "$ref": "#/definitions/pico_gate" }
+  },
+  "definitions": {
+    "component": {
+      "type": "object",
+      "required": ["part_id", "instance_id"],
+      "properties": {
+        "part_id": {
+          "type": "string",
+          "description": "parts_catalogに存在するpart_idであること（バリデータが照合）。"
+        },
+        "instance_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "description": "レシピ内で一意。rulesのsensor/actuatorはこのidを参照する。"
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": ["rule_id", "when", "then"],
+      "properties": {
+        "rule_id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "when": { "$ref": "#/definitions/when" },
+        "then": { "$ref": "#/definitions/then" }
+      }
+    },
+    "when": {
+      "type": "object",
+      "required": ["sensor", "event"],
+      "description": "発火条件。単一条件のみ（v0.3ではAND/OR不可）。",
+      "properties": {
+        "sensor": {
+          "type": "string",
+          "description": "components内のinstance_idを参照。"
+        },
+        "event": {
+          "type": "string",
+          "description": "その部品のrole_eventsに存在するイベント名であること。"
+        },
+        "threshold_cm": {
+          "type": "number",
+          "description": "カタログのevent_defのmin/max範囲内であること。範囲外はバリデータが弾く。"
+        },
+        "value": {
+          "type": "number",
+          "description": "汎用パラメータ（つまみ値、明るさ等）。カタログ範囲で検証。"
+        }
+      }
+    },
+    "then": {
+      "type": "object",
+      "description": "実行モデル（案A・フラット）。parallelかsequenceのちょうど一方だけを持つ。ネスト不可。",
+      "oneOf": [
+        {
+          "required": ["parallel"],
+          "not": { "required": ["sequence"] },
+          "properties": {
+            "parallel": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 5,
+              "items": { "$ref": "#/definitions/action_step" }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["sequence"],
+          "not": { "required": ["parallel"] },
+          "properties": {
+            "sequence": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 5,
+              "items": { "$ref": "#/definitions/action_step" }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "action_step": {
+      "type": "object",
+      "required": ["actuator", "action"],
+      "description": "単一のアクション。duration_msを持つアクションは自動終了するため明示的なoffは不要。",
+      "properties": {
+        "actuator": {
+          "type": "string",
+          "description": "components内のinstance_idを参照。"
+        },
+        "action": {
+          "type": "string",
+          "description": "その部品のactionsに存在すること。"
+        },
+        "color": {
+          "type": "string",
+          "enum": ["red", "blue", "green", "yellow", "white", "rainbow", "purple", "orange"]
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000,
+          "description": "このアクションが続く時間。これを持つアクションは自動で終了する。"
+        },
+        "repeat": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "ビープ等の繰り返し回数。"
+        },
+        "delay_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000,
+          "description": "sequence内でのみ意味を持つ。直前ステップ終了からの待ち時間。parallel内では使用不可（バリデータが警告）。"
+        }
+      }
+    },
+    "validation_policy": {
+      "type": "object",
+      "description": "レシピが守るべき制限。バリデータの設定値と一致させる。",
+      "properties": {
+        "max_rules": { "type": "integer", "const": 5 },
+        "max_actions_per_rule": { "type": "integer", "const": 5 },
+        "max_delay_ms": { "type": "integer", "const": 10000 },
+        "execution_model": { "type": "string", "const": "flat" },
+        "nesting_allowed": { "type": "boolean", "const": false },
+        "no_unbounded_loop": { "type": "boolean", "const": true },
+        "no_arbitrary_code": { "type": "boolean", "const": true },
+        "program_must_validate_actions": { "type": "boolean", "const": true }
+      }
+    },
+    "pico_gate": {
+      "type": "object",
+      "description": "Picoへ送ってよいかの判定ゲート。全条件を満たさないと送信不可。判定はプログラム。",
+      "required": [
+        "requires_photo_check", "requires_adult_approval",
+        "usb_state_required", "power_state_required"
+      ],
+      "properties": {
+        "requires_photo_check": { "type": "boolean" },
+        "requires_adult_approval": { "type": "boolean" },
+        "usb_state_required": {
+          "type": "string",
+          "enum": ["off", "allowed", "on"]
+        },
+        "power_state_required": {
+          "type": "string",
+          "enum": ["unchecked", "checked"]
+        }
+      }
+    }
+  }
+}

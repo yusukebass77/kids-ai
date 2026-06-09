@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.3-draft",
+  "updated_at": "2026-05-28",
+  "notes": "仮の手持ち在庫。実際の部品が確定したら更新する。ここに無い、または0個の部品は手持ち提案モードで提案されない。",
+  "stock": {
+    "pico2w": 1,
+    "button": 2,
+    "single_led": 10,
+    "rgb_led_4pin": 1,
+    "active_buzzer": 1,
+    "vl53l0x_distance": 1,
+    "tcs34725_color": 1,
+    "servo_sg90": 2,
+    "neopixel_ring_12": 1,
+    "potentiometer": 1
+  }
+}

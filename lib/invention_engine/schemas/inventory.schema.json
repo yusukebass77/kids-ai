@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kids-ai/schemas/inventory.schema.json",
+  "title": "kids-ai inventory",
+  "description": "家に実際に何個あるかを表す。parts_catalogの『能力』とは分離する。手持ち提案モードはこのファイルでフィルタする。",
+  "type": "object",
+  "required": ["schema_version", "stock"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "updated_at": {
+      "type": "string",
+      "format": "date",
+      "description": "在庫を最後に確認した日付。"
+    },
+    "notes": { "type": "string" },
+    "stock": {
+      "type": "object",
+      "description": "part_id をキー、所持数を値とする。0個や未所持の部品はキーごと省略してよい。",
+      "patternProperties": {
+        "^[a-z0-9_]+$": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

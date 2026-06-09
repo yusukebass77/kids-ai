@@ -19,6 +19,10 @@ assistant per child, tuned to their grade and personality, with safety checks on
 both what goes in and what comes out — and your child's conversations never
 leave your server.
 
+And it goes beyond chat: in **Invention mode**, the assistant turns a kid's idea
+into a real, runnable recipe for a microcontroller — so "what I imagined" becomes
+"a thing that actually works" (see below).
+
 ## Features
 
 - **Per-child personas** — name, grade, reading level, interests, and a free-form
@@ -35,6 +39,29 @@ leave your server.
 - **PWA** — installable on a tablet (e.g. Fire HD / any browser), per-child theme.
 - **Optional Discord relay** — route chat through a Discord listener instead of
   the API.
+
+## Invention mode 🛠 (the part that isn't a chatbot)
+
+Most kids-AI tools stop at conversation. kids-ai's **invention mode** is a guided
+maker assistant: the child describes something they want to build, the assistant
+walks them through five questions (*what / what it senses / what it does / the
+rule / when it stops*), and produces a **machine-checked invention recipe** the
+child can run on a Raspberry Pi **Pico 2 W** microcontroller.
+
+It's backed by a real engine, not just a prompt:
+
+- `lib/invention_engine/` — loads a parts catalog + the child's on-hand inventory,
+  **structurally validates** every recipe against a JSON Schema, and runs
+  **semantic safety checks** (GPIO-pin count, I²C address collisions, estimated
+  current draw, sensor/actuator compatibility). Safety-relevant decisions live in
+  code, not in the model.
+- Bundled schemas + a sample parts catalog (12 parts) and recipe templates (10)
+  under `lib/invention_engine/schemas/` — it runs out of the box.
+- `prompts/programming-mode-v1.md` — the inventor-assistant persona (co-inventor,
+  not a teacher).
+
+This is the "your imagination really moves in the physical world" on-ramp — a
+genuine differentiator from chat-only kids assistants.
 
 ## Configure (this is where your data lives)
 

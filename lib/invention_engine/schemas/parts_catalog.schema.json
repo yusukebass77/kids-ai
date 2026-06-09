@@ -1,0 +1,166 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kids-ai/schemas/parts_catalog.schema.json",
+  "title": "kids-ai parts catalog",
+  "description": "部品の能力定義（capability schema）。家にある数ではなく『何ができるか』を表す。登録外の部品は子ども向けUIで使わせない。",
+  "type": "object",
+  "required": ["schema_version", "safe_level_definition", "parts"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "notes": { "type": "string" },
+    "safe_level_definition": {
+      "type": "object",
+      "description": "1=画面のみ/低リスク, 2=3.3V低電流, 3=センサー/通信, 4=5V/サーボ/リング, 5=外部電源/モーター(Phase1-2非対応)",
+      "additionalProperties": { "type": "string" }
+    },
+    "parts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/part" }
+    },
+    "disallowed_or_later": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "reason"],
+        "properties": {
+          "item": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "part": {
+      "type": "object",
+      "required": [
+        "part_id", "name_kids", "category", "interface",
+        "role", "voltage", "safe_level", "adult_required"
+      ],
+      "properties": {
+        "part_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "description": "機械可読ID。小文字英数とアンダースコアのみ。"
+        },
+        "name_kids": {
+          "type": "string",
+          "description": "子ども向け表示名。絵文字可。"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["controller", "input", "output", "sensor", "actuator"]
+        },
+        "interface": {
+          "type": "string",
+          "enum": [
+            "gpio", "digital_gpio", "analog_gpio", "pwm_gpio",
+            "i2c", "one_wire_timing"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "enum": ["controller", "input", "output"]
+        },
+        "voltage": {
+          "type": "string",
+          "description": "3v3 / 5v / 3v3_logic / 3v3_or_5v_by_model 等。表記ゆれを避けるため列挙で管理する。",
+          "enum": ["3v3", "5v", "3v3_logic", "3v3_or_5v_by_model"]
+        },
+        "level_shift_required": {
+          "type": "boolean",
+          "default": false,
+          "description": "5V系1-wire等でレベルシフタ(74HCT125等)が要る場合true。"
+        },
+        "pins_required": {
+          "type": "object",
+          "description": "必要なピン種別と本数。組み合わせ検証エンジンがGPIO数を数えるのに使う。",
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "integer", "minimum": 0 },
+              { "type": "string" }
+            ]
+          }
+        },
+        "pull": {
+          "type": "string",
+          "enum": ["internal", "external", "none"],
+          "description": "デジタル入力のプルアップ/ダウン方式。buttonはinternal(内部プルアップ)で抵抗不要、と配線カード生成器が判断できる。"
+        },
+        "i2c_address": {
+          "type": "string",
+          "pattern": "^0x[0-9A-Fa-f]{2}$"
+        },
+        "i2c_address_alt": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^0x[0-9A-Fa-f]{2}$" },
+          "description": "XSHUT等で再割当可能な代替アドレス。空配列なら再割当不可。"
+        },
+        "current_draw_ma_typ": { "type": "number", "minimum": 0 },
+        "current_draw_ma_peak": { "type": "number", "minimum": 0 },
+        "current_draw_ma_max": { "type": "number", "minimum": 0 },
+        "role_events": {
+          "type": "object",
+          "description": "入力部品が発火できるイベントと、そのパラメータ定義。閾値はここが唯一の定義場所。recipeは上書きのみ可。",
+          "additionalProperties": { "$ref": "#/definitions/event_def" }
+        },
+        "actions": {
+          "type": "array",
+          "description": "出力部品が実行できるアクション名。recipeのactionはこの集合内に限る。",
+          "items": { "type": "string" }
+        },
+        "adult_required": {
+          "type": "boolean",
+          "description": "配線・使用に大人の確認が必須か。"
+        },
+        "safe_level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "phase_locked": {
+          "type": "boolean",
+          "default": false,
+          "description": "trueならカタログに載るがPhase1-2ではUIでグレーアウト（選べない）。サーボ・NeoPixelリング等の5V系に付与。"
+        },
+        "max_count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "同種部品をレシピで何個まで使えるか（能力上の上限）。実在庫はinventoryで別管理。"
+        },
+        "llm_select_hint": {
+          "type": "string",
+          "description": "見た目が似た部品の取り違えをLLMが避けるための選択ヒント。例: RGB LED と NeoPixelリングの区別。"
+        },
+        "notes": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "interface": { "const": "i2c" } } },
+          "then": { "required": ["i2c_address"] }
+        },
+        {
+          "if": { "properties": { "role": { "const": "input" } } },
+          "then": { "required": ["role_events"] }
+        },
+        {
+          "if": { "properties": { "role": { "const": "output" } } },
+          "then": { "required": ["actions"] }
+        }
+      ]
+    },
+    "event_def": {
+      "type": "object",
+      "description": "イベントとそのパラメータ定義。距離センサーのthreshold_cm等の唯一の定義場所。",
+      "properties": {
+        "param": {
+          "type": "string",
+          "description": "調整可能なパラメータ名。無いイベント（press等）ではparam省略。"
+        },
+        "default": { "type": "number" },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "unit": { "type": "string" }
+      }
+    }
+  }
+}

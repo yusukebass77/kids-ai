@@ -1,14 +1,19 @@
 """kids-ai 発明レシピエンジン: スキーマ/データのロード層
 
-スキーマ正本: ~/knowledge-index/projects/kids-ai-programming-mode/engine/schemas/
+スキーマ/サンプルは同梱の lib/invention_engine/schemas/ から読む。
+KIDS_AI_SCHEMA_DIR で上書き可。
 """
 from __future__ import annotations
 
+import os
 import json
 from pathlib import Path
 from typing import Any
 
-SCHEMA_DIR = Path.home() / "knowledge-index" / "projects" / "kids-ai-programming-mode" / "engine" / "schemas"
+SCHEMA_DIR = Path(os.environ.get(
+    "KIDS_AI_SCHEMA_DIR",
+    str(Path(__file__).resolve().parent / "schemas"),
+))
 
 DEFAULT_CATALOG_PATH = SCHEMA_DIR / "parts_catalog_v03.json"
 DEFAULT_INVENTORY_PATH = SCHEMA_DIR / "inventory_sample.json"
