@@ -1,0 +1,137 @@
+{
+  "templates_schema_version": "0.3-draft",
+  "notes": "手持ち提案モード用の初期有効レシピテンプレ10件。全組み合わせ生成の代わりに、これをinventoryでフィルタする。Phase1-2で実際に遊べるもの(phase_locked部品を含まないもの)を中心に、将来用(servo/neopixel)も数件含む。required_partsが在庫にあるテンプレだけが提案される。",
+  "templates": [
+    {
+      "template_id": "secret_base_alarm",
+      "title_kids": "🚨 ひみつきちアラーム",
+      "summary_kids": "近づいたらライトとブザーで知らせる",
+      "required_parts": [
+        { "part_id": "vl53l0x_distance", "qty": 1 },
+        { "part_id": "single_led", "qty": 1 },
+        { "part_id": "active_buzzer", "qty": 1 }
+      ],
+      "recommended_for": ["child1"],
+      "interest_tags": ["adventure", "alarm", "secret_base"],
+      "phase_min": 2,
+      "rule_sketch": "distance_near → (parallel) LED blink + buzzer beep"
+    },
+    {
+      "template_id": "stone_light",
+      "title_kids": "💎 いしライト",
+      "summary_kids": "ボタンを押すと石みたいにLEDが光る",
+      "required_parts": [
+        { "part_id": "button", "qty": 1 },
+        { "part_id": "single_led", "qty": 1 }
+      ],
+      "recommended_for": ["child1"],
+      "interest_tags": ["mineral", "stone", "light"],
+      "phase_min": 1,
+      "rule_sketch": "button press → LED on (duration)"
+    },
+    {
+      "template_id": "color_detective",
+      "title_kids": "🎨 いろたんてい",
+      "summary_kids": "赤い色を見つけたらLEDが赤く光る",
+      "required_parts": [
+        { "part_id": "tcs34725_color", "qty": 1 },
+        { "part_id": "rgb_led_4pin", "qty": 1 }
+      ],
+      "recommended_for": ["child1", "child2"],
+      "interest_tags": ["color", "detective", "science"],
+      "phase_min": 2,
+      "rule_sketch": "color_red → RGB set_color red"
+    },
+    {
+      "template_id": "math_correct_light",
+      "title_kids": "🔢 せいかいライト",
+      "summary_kids": "あんざんで正解したらライトがつく(あんざんモード連動)",
+      "required_parts": [
+        { "part_id": "button", "qty": 1 },
+        { "part_id": "single_led", "qty": 1 }
+      ],
+      "recommended_for": ["child1"],
+      "interest_tags": ["math", "reward", "study"],
+      "phase_min": 1,
+      "rule_sketch": "button(正解扱い) press → LED blink (お祝い)"
+    },
+    {
+      "template_id": "story_lamp",
+      "title_kids": "📖 ものがたりランプ",
+      "summary_kids": "ボタンでお話の場面に合わせて色が変わる",
+      "required_parts": [
+        { "part_id": "button", "qty": 1 },
+        { "part_id": "rgb_led_4pin", "qty": 1 }
+      ],
+      "recommended_for": ["child2"],
+      "interest_tags": ["story", "fantasy", "color"],
+      "phase_min": 2,
+      "rule_sketch": "button press → RGB set_color (場面の色)"
+    },
+    {
+      "template_id": "magic_wand",
+      "title_kids": "🪄 まほうのつえ",
+      "summary_kids": "ボタンを2回押すと魔法みたいに光る",
+      "required_parts": [
+        { "part_id": "button", "qty": 1 },
+        { "part_id": "rgb_led_4pin", "qty": 1 }
+      ],
+      "recommended_for": ["child2"],
+      "interest_tags": ["magic", "fantasy", "story"],
+      "phase_min": 2,
+      "rule_sketch": "button double_press → RGB blink rainbow風(duration)"
+    },
+    {
+      "template_id": "castle_watch_light",
+      "title_kids": "🏰 おしろのみはりライト",
+      "summary_kids": "誰かが近づいたら赤と青で知らせる",
+      "required_parts": [
+        { "part_id": "vl53l0x_distance", "qty": 1 },
+        { "part_id": "single_led", "qty": 2 }
+      ],
+      "recommended_for": ["child2"],
+      "interest_tags": ["castle", "story", "guard"],
+      "phase_min": 2,
+      "rule_sketch": "distance_near → (parallel) 赤LED blink + 青LED blink"
+    },
+    {
+      "template_id": "brightness_night_light",
+      "title_kids": "🌙 よるのナイトライト",
+      "summary_kids": "暗くなったら自動でライトがつく",
+      "required_parts": [
+        { "part_id": "photoresistor", "qty": 1 },
+        { "part_id": "single_led", "qty": 1 }
+      ],
+      "recommended_for": ["child1", "child2"],
+      "interest_tags": ["night", "auto", "science"],
+      "phase_min": 2,
+      "rule_sketch": "light_low → LED on"
+    },
+    {
+      "template_id": "dragon_gate",
+      "title_kids": "🐉 ドラゴンゲート",
+      "summary_kids": "ボタンを押すとリングが順番に光る(リング到着後)",
+      "required_parts": [
+        { "part_id": "button", "qty": 1 },
+        { "part_id": "neopixel_ring_12", "qty": 1 }
+      ],
+      "recommended_for": ["child1"],
+      "interest_tags": ["dragon", "fantasy", "light_show"],
+      "phase_min": 4,
+      "rule_sketch": "button press → ring rainbow (※neopixelはPhase4まで非対応)"
+    },
+    {
+      "template_id": "knob_mood_light",
+      "title_kids": "🎚️ きぶんライト",
+      "summary_kids": "つまみを回すと色がだんだん変わる",
+      "required_parts": [
+        { "part_id": "potentiometer", "qty": 1 },
+        { "part_id": "rgb_led_4pin", "qty": 1 }
+      ],
+      "recommended_for": ["child2", "child1"],
+      "interest_tags": ["mood", "color", "experiment"],
+      "phase_min": 2,
+      "rule_sketch": "value_changed → RGB set_color (つまみ値で色相)"
+    }
+  ]
+}
