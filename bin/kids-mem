@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""
+kids-mem: kids-ai メモリ層 CLI
+Usage:
+  kids-mem add <user_id> <category> <item> [--source MSG] [--confidence C]
+  kids-mem extract <user_id> --msg "子供の発言"
+  kids-mem search <user_id> <query> [--top K]
+  kids-mem list <user_id> [--limit N] [--category CAT]
+  kids-mem snippet <user_id> [--recent N] [--query Q]
+"""
+import sys
+import json
+import argparse
+from pathlib import Path
+
+# kids-ai/lib を import path に追加
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "lib"))
+
+# .env を読む（ANTHROPIC_API_KEY 用）
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+except ImportError:
+    pass
+
+import memory  # noqa: E402
+
+
+def cmd_add(args):
+    entry = memory.add(
+        args.user_id, args.category, args.item,
+        source_msg=args.source or "", confidence=args.confidence,
+    )
+    print(json.dumps(entry, ensure_ascii=False, indent=2))
+
+
+def cmd_extract(args):
+    added = memory.extract_from_message(args.user_id, args.msg)
+    if not added:
+        print("(抽出項目なし)")
+        return
+    for e in added:
+        print(json.dumps(e, ensure_ascii=False))
+
+
+def cmd_search(args):
+    hits = memory.search(args.user_id, args.query, top_k=args.top)
+    if not hits:
+        print("(該当なし)")
+        return
+    for e in hits:
+        print(f"[{e['ts'][:10]} {e['category']:>10}] {e['item']}")
+
+
+def cmd_list(args):
+    entries = memory.list_recent(args.user_id, limit=args.limit, category=args.category)
+    if not entries:
+        print("(空)")
+        return
+    for e in entries:
+        print(f"[{e['ts'][:10]} {e['category']:>10}] {e['item']}  (conf={e['confidence']})")
+
+
+def cmd_snippet(args):
+    snippet = memory.build_snippet(args.user_id, recent_n=args.recent, query=args.query)
+    if not snippet:
+        print("(空)")
+        return
+    print(snippet)
+
+
+def main():
+    parser = argparse.ArgumentParser(prog="kids-mem")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p_add = sub.add_parser("add")
+    p_add.add_argument("user_id", choices=memory.VALID_USERS)
+    p_add.add_argument("category", choices=memory.VALID_CATEGORIES)
+    p_add.add_argument("item")
+    p_add.add_argument("--source", default="")
+    p_add.add_argument("--confidence", type=float, default=1.0)
+    p_add.set_defaults(func=cmd_add)
+
+    p_ext = sub.add_parser("extract")
+    p_ext.add_argument("user_id", choices=memory.VALID_USERS)
+    p_ext.add_argument("--msg", required=True)
+    p_ext.set_defaults(func=cmd_extract)
+
+    p_sr = sub.add_parser("search")
+    p_sr.add_argument("user_id", choices=memory.VALID_USERS)
+    p_sr.add_argument("query")
+    p_sr.add_argument("--top", type=int, default=5)
+    p_sr.set_defaults(func=cmd_search)
+
+    p_ls = sub.add_parser("list")
+    p_ls.add_argument("user_id", choices=memory.VALID_USERS)
+    p_ls.add_argument("--limit", type=int, default=20)
+    p_ls.add_argument("--category", choices=memory.VALID_CATEGORIES, default=None)
+    p_ls.set_defaults(func=cmd_list)
+
+    p_sn = sub.add_parser("snippet")
+    p_sn.add_argument("user_id", choices=memory.VALID_USERS)
+    p_sn.add_argument("--recent", type=int, default=7)
+    p_sn.add_argument("--query", default=None)
+    p_sn.set_defaults(func=cmd_snippet)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
