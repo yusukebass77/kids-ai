@@ -65,6 +65,10 @@ walks them through five questions (*what / what it senses / what it does / the
 rule / when it stops*), and produces a **machine-checked invention recipe** the
 child can run on a Raspberry Pi **Pico 2 W** microcontroller.
 
+Crucially, kids aren't limited to a menu of preset projects — they describe
+**whatever they imagine, in their own words**, and the engine turns that free
+idea into a buildable, safety-checked recipe.
+
 It's backed by a real engine, not just a prompt:
 
 - `lib/invention_engine/` — loads a parts catalog + the child's on-hand inventory,
