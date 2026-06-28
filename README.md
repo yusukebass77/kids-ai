@@ -27,14 +27,14 @@ into a real, runnable recipe for a microcontroller — so "what I imagined" beco
 
 <table>
 <tr>
-<td width="33%"><img src="docs/screenshots/chat-socratic.jpg" alt="Chat mode"><br><sub><b>Chat</b> — Socratic companion with per-child memory</sub></td>
 <td width="33%"><img src="docs/screenshots/explain-mode.jpg" alt="Explain mode"><br><sub><b>Explain</b> — kid-level answers with diagrams &amp; furigana</sub></td>
 <td width="33%"><img src="docs/screenshots/story-mode.jpg" alt="Story mode"><br><sub><b>Story</b> — collaborative branching gamebook</sub></td>
+<td width="33%"><img src="docs/screenshots/anzan-mode.jpg" alt="Mental math mode"><br><sub><b>Mental math</b> — flash-anzan drills by level</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/anzan-mode.jpg" alt="Mental math mode"><br><sub><b>Mental math</b> — flash-anzan drills by level</sub></td>
-<td><img src="docs/screenshots/invention-levels.jpg" alt="Invention levels"><br><sub><b>Invention</b> — leveled build recipes (LED → sensors)</sub></td>
-<td><img src="docs/screenshots/invention-wiring-pico.jpg" alt="Invention wiring guide"><br><sub><b>Invention</b> — Pico 2 W wiring guide + parent check</sub></td>
+<td><img src="docs/screenshots/invention-brainstorm.jpg" alt="Invention — free idea"><br><sub><b>Invention</b> — any idea a kid dreams up becomes a build; the assistant brainstorms it (here: "a machine that knows stone types")</sub></td>
+<td><img src="docs/screenshots/invention-levels.jpg" alt="Invention levels"><br><sub><b>Invention</b> — or start from leveled recipes (LED → sensors)</sub></td>
+<td><img src="docs/screenshots/invention-wiring-pico.jpg" alt="Invention wiring guide"><br><sub><b>Invention</b> — guided Pico 2 W wiring + parent check</sub></td>
 </tr>
 </table>
 
