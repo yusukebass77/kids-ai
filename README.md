@@ -23,6 +23,23 @@ And it goes beyond chat: in **Invention mode**, the assistant turns a kid's idea
 into a real, runnable recipe for a microcontroller — so "what I imagined" becomes
 "a thing that actually works" (see below).
 
+## Screenshots
+
+<table>
+<tr>
+<td width="33%"><img src="docs/screenshots/chat-socratic.jpg" alt="Chat mode"><br><sub><b>Chat</b> — Socratic companion with per-child memory</sub></td>
+<td width="33%"><img src="docs/screenshots/explain-mode.jpg" alt="Explain mode"><br><sub><b>Explain</b> — kid-level answers with diagrams &amp; furigana</sub></td>
+<td width="33%"><img src="docs/screenshots/story-mode.jpg" alt="Story mode"><br><sub><b>Story</b> — collaborative branching gamebook</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/anzan-mode.jpg" alt="Mental math mode"><br><sub><b>Mental math</b> — flash-anzan drills by level</sub></td>
+<td><img src="docs/screenshots/invention-levels.jpg" alt="Invention levels"><br><sub><b>Invention</b> — leveled build recipes (LED → sensors)</sub></td>
+<td><img src="docs/screenshots/invention-wiring-pico.jpg" alt="Invention wiring guide"><br><sub><b>Invention</b> — Pico 2 W wiring guide + parent check</sub></td>
+</tr>
+</table>
+
+> Demo uses the bundled example config (`こども1` / `こども2`, assistant `あい`) — no real personal data.
+
 ## Features
 
 - **Per-child personas** — name, grade, reading level, interests, and a free-form
@@ -117,10 +134,24 @@ Personal data stays out of the repo by design — these are git-ignored:
 `config/children.json`, `prompts/<id>_profile.md` edits, `memory/`,
 `conversations/`, `logs/`. Keep your real config and profiles private.
 
-## Status
+## Project status & roadmap
 
-Early but working. Roadmap and known issues are tracked in GitHub Issues —
-contributions welcome (see `CONTRIBUTING.md`).
+kids-ai is **actively developed** and **dogfooded daily in a real household** —
+two kids on Fire HD tablets. It's at **v0.1**: working end-to-end, with rough
+edges I'm smoothing as the kids actually use it.
+
+**Working today:** per-child chat with memory, `explain` / `story` / mental-math /
+`invention` modes, furigana, the safety gate (log-only → enforce), TTS, PWA
+install, and an optional Discord relay.
+
+**Roadmap:**
+- [ ] Dynamic proper-noun / on-hand-inventory injection into invention recipes
+- [ ] Safety-gate enforcement defaults + per-child tunable thresholds
+- [ ] More invention recipe templates and a wider parts catalog
+- [ ] First-class parent view (time budget, daily summary)
+- [ ] CI for the safety-gate and invention-engine test suites
+
+Issues and PRs welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 

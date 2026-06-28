@@ -25,3 +25,6 @@ venv/
 # ---- misc ----
 *.bak.*
 .DS_Store
+
+# runtime state
+quiet_override.json
